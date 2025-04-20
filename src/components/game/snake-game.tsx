@@ -1,13 +1,12 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Game constants
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
-const INITIAL_SPEED = 100;
 
 type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
 type Position = { x: number; y: number };
@@ -20,7 +19,6 @@ export function SnakeGame() {
   const [score, setScore] = useState(0);
   const [paused, setPaused] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const gameLoopRef = useRef<number | null>(null);
 
   // Place food at random position
   const placeFood = () => {
@@ -68,8 +66,8 @@ export function SnakeGame() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [direction, gameOver]);
 
-  // Draw game on canvas
-  const drawGame = () => {
+  // Draw game on canvas using useCallback to memoize the function
+  const drawGame = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -113,13 +111,13 @@ export function SnakeGame() {
       ctx.lineTo(GRID_SIZE * CELL_SIZE, i * CELL_SIZE);
       ctx.stroke();
     }
-  };
+  }, [snake, food]); // Dependencies for the drawGame function
 
   // This would be where the game loop runs in a real implementation
   useEffect(() => {
     // Just drawing the initial state for now
     drawGame();
-  }, [snake, food]);
+  }, [drawGame]); // Only depend on the memoized drawGame function
 
   return (
     <Card className="w-full max-w-md mx-auto">
